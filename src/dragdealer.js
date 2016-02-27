@@ -232,6 +232,7 @@ Dragdealer.prototype = {
     handleClass: 'handle',
     css3: true,
     activeClass: 'active',
+    skipClass: 'dragdealer-skip',
     tapping: true
   },
   init: function() {
@@ -403,11 +404,14 @@ Dragdealer.prototype = {
     this.cancelAnimationFrame(this.interval);
   },
   onHandleMouseDown: function(e) {
-    Cursor.refresh(e);
-    preventEventDefaults(e);
-    stopEventPropagation(e);
-    this.activity = false;
-    this.startDrag();
+    if ( ! this.parentHasSkipClass(e.target, this.options.skipClass) )
+    {
+      Cursor.refresh(e);
+      preventEventDefaults(e);
+      stopEventPropagation(e);
+      this.activity = false;
+      this.startDrag();
+    }
   },
   onHandleTouchStart: function(e) {
     Cursor.refresh(e);
@@ -450,9 +454,12 @@ Dragdealer.prototype = {
     this.activity = true;
   },
   onWrapperMouseDown: function(e) {
-    Cursor.refresh(e);
-    preventEventDefaults(e);
-    this.startTap();
+    if ( ! this.parentHasSkipClass(e.target, this.options.skipClass) )
+    {
+      Cursor.refresh(e);
+      preventEventDefaults(e);
+      this.startTap();
+    }
   },
   onWrapperTouchStart: function(e) {
     Cursor.refresh(e);
@@ -664,6 +671,16 @@ Dragdealer.prototype = {
       this.groupCopy(this.value.current, this.value.target);
     }
     return true;
+  },
+  parentHasSkipClass: function(elm, classname)
+  {
+    if (elm.className)
+    {
+      if (elm.className.split(' ').indexOf(classname) >= 0)
+        return true;
+    }
+
+    return elm.parentNode && this.parentHasSkipClass(elm.parentNode, classname);
   },
   updateOffsetFromValue: function() {
     if (!this.options.snap) {
